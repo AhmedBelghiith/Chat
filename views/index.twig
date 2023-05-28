@@ -1,0 +1,91 @@
+<html>
+  <head>
+    <html lang="en">
+    <meta charset="utf-8" />
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        .notif{
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 20px;
+            background-color: pink;
+        }
+
+        #typingNotif{
+            position: absolute;
+            top: 6%;
+            left: 12%;
+            display: none;
+            padding-inline: 5px;
+        }
+    </style>
+  </head>
+  <body>
+    <script>
+        socket = io.connect()
+        let name = ""
+        socket.on("notification", (data) => {
+            console.log(data)
+            p = document.getElementById('notif')
+            p.style.display = 'block'
+            p.innerText = data
+            setTimeout(() => {
+                p.style.display = 'none'
+            }, 2000)
+        })
+
+        socket.on("msg", (data) => {
+            console.log(data)
+            p = document.createElement("p")
+            p.innerText = name + " : "
+            document.body.append(p)
+            p = document.createElement("p")
+            p.innerText = new Date() + " : " + data
+            document.body.append(p)
+        })
+
+        socket.on("name", (data) => {
+            console.log(data)
+            name = data
+        })
+
+        socket.on("userIsTyping", (data) => {
+            console.log(data)
+            span = document.getElementById('typingNotif')
+            span.style.display = 'block'
+            span.innerText = data + " is Typing ..."
+            setTimeout(() => {
+                span.style.display = 'none'
+            }, 2000)
+        })
+        
+      socket.on("disconnect", () => {
+        console.log("Disconnected from server");
+        name = "";
+      });
+
+        
+
+        function sendMessage(){
+            msg = document.getElementById("message").value
+            let user = document.getElementById("name").value 
+            date = new Date()
+            socket.emit("name", user)
+            socket.emit("msg", msg)
+            return name
+        }
+
+        function handleChange(){
+            let user = document.getElementById("name").value 
+            socket.emit("userIsTyping", user)
+        }
+    </script>
+    <h1>Chat</h1>
+    <div id="notif" class="notif"></div>
+    <input type="text" name="name" placeholder="name" id="name">
+    <input type="text" name="message" placeholder="message" id="message" onkeyup="handleChange()">
+    <span id="typingNotif"></span>
+    <button onclick="sendMessage()">Send Message</button>
+  </body>
+</html>
